@@ -1,14 +1,56 @@
 #include "Fire.h"
+#include "random.h"
+#include "grid.h"
 using namespace std;
 
-void updateFire(Grid<int>& fire) {
-    /* TODO: The next line just exists to make sure you don't get compiler warning messages
-     * when this function isn't implemented. Delete this comment and the next line, then
-     * implement this function.
-     */
-    (void) fire;
-}
+void updateFire(Grid<int>& firegrid) {
+    Grid<int> newFire = firegrid;
 
+    for (int row = firegrid.numRows() - 2; row >= 0; row--) {
+        for (int col = 0; col < firegrid.numCols(); col++) {
+            if (firegrid[row + 1][col] == 0) {
+                newFire[row][col] = 0;
+            }
+        }
+
+        for (int col = 0; col < firegrid.numCols(); col++) {
+            if (firegrid[row + 1][col] > 0) {
+                double rand = randomReal(0, 1);
+                int targetCol = col;
+                bool willPropagate = true;
+
+                if (firegrid.numCols() == 1) {
+                    targetCol = 0;
+                }
+                else if (col == 0) {
+                    if (rand < 0.5) targetCol = col;
+                    else targetCol = col + 1;
+                }
+                else if (col == firegrid.numCols() - 1) {
+                    if (rand < 0.5) targetCol = col;
+                    else targetCol = col - 1;
+                }
+                else {
+                    if (rand < 1.0/3.0) targetCol = col - 1;
+                    else if (rand < 5.0/9.0) targetCol = col;
+                    else if (rand < 19.0/27.0) targetCol = col + 1;
+                    else willPropagate = false;
+                }
+
+                if (willPropagate) {
+                    int newValue = firegrid[row + 1][col];
+                    if (randomReal(0, 1) < 2.0/3.0) {
+                        newValue = max(0, newValue - 1);
+                    }
+                    if (newFire[row][targetCol] < newValue) {
+                        newFire[row][targetCol] = newValue;
+                    }
+                }
+            }
+        }
+    }
+    firegrid = newFire;
+}
 
 /* * * * * * Provided Test Cases * * * * * */
 #include "GUI/SimpleTest.h"
